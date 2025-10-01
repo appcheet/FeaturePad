@@ -1,32 +1,42 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useThemeStore } from '../store/themeStore';
-import { lightTheme, darkTheme } from './themes';
-import { Theme } from '../types';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Appearance, ColorSchemeName } from 'react-native';
+import { useAppStore } from '../store/useAppStore';
+import { Theme, ThemeMode } from '../types';
+import { darkTheme, lightTheme } from './themes';
 
 interface ThemeContextType {
   theme: Theme;
   isDark: boolean;
-  toggleTheme: () => void;
-  setTheme: (mode: 'light' | 'dark') => void;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { themeMode, toggleTheme, setTheme } = useThemeStore();
-  
-  const theme = themeMode === 'dark' ? darkTheme : lightTheme;
-  const isDark = themeMode === 'dark';
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { settings, setTheme } = useAppStore();
+  const [systemTheme, setSystemTheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemTheme(colorScheme);
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
+  const isDark = settings.theme === 'dark' || (settings.theme === 'system' && systemTheme === 'dark');
+  const theme = isDark ? darkTheme : lightTheme;
+
+  const contextValue: ThemeContextType = {
+    theme,
+    isDark,
+    themeMode: settings.theme,
+    setThemeMode: setTheme,
+  };
 
   return (
-    <ThemeContext.Provider
-      value={{
-        theme,
-        isDark,
-        toggleTheme,
-        setTheme,
-      }}
-    >
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

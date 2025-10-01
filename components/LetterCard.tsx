@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Letter } from '../types';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { Letter } from '../types';
 
 interface LetterCardProps {
   letter: Letter;
@@ -40,77 +41,113 @@ export const LetterCard: React.FC<LetterCardProps> = ({
     shadowColor: theme.colors.shadow,
   };
 
+  const daysUntilDelivery = Math.ceil((new Date(letter.scheduledDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  const isDelivered = letter.isDelivered || daysUntilDelivery <= 0;
+
   return (
     <TouchableOpacity style={cardStyles} onPress={onPress}>
-      <View style={styles.header}>
-        <View style={[styles.moodContainer, { backgroundColor: theme.colors.surface }]}>
-          <Text style={styles.moodEmoji}>{getMoodEmoji(letter.mood)}</Text>
+      <View style={styles.contentRow}>
+        <View style={styles.leftContent}>
+          <Image
+            source={{ uri: letter.image || 'https://picsum.photos/80/80' }}
+            style={styles.thumbnail}
+          />
         </View>
-        <Text style={[styles.date, { color: theme.colors.primary }]}>
-          Opens in {Math.ceil((new Date(letter.scheduledDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} Days
-        </Text>
-        {onDelete && (
-          <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
-            <Text style={styles.deleteText}>🗑️</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.middleContent}>
+          <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>
+            {letter.title}
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            Mood: {letter.mood.charAt(0).toUpperCase() + letter.mood.slice(1)}
+          </Text>
+          <View style={styles.statusRow}>
+            {isDelivered ? (
+              <>
+                <Ionicons name="checkmark-circle" size={14} color={theme.colors.success} />
+                <Text style={[styles.statusText, { color: theme.colors.success }]}>Opened</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="lock-closed" size={14} color={theme.colors.textSecondary} />
+                <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
+                  Open in {daysUntilDelivery} Days
+                </Text>
+              </>
+            )}
+          </View>
+        </View>
+        <View style={styles.rightContent}>
+          <Text style={[styles.date, { color: theme.colors.textSecondary }]}>
+            {formatDate(letter.scheduledDate)}
+          </Text>
+          {onDelete && (
+            <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
+              <Ionicons name="trash-outline" size={18} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      <Text style={[styles.title, { color: theme.colors.text }]}>{letter.title}</Text>
-      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Mood: {letter.mood}</Text>
-      <Text style={[styles.scheduledDate, { color: theme.colors.placeholder }]}>
-        Scheduled: {formatDate(letter.scheduledDate)}
-      </Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginVertical: 8,
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  header: {
+  contentRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 12,
   },
-  moodContainer: {
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
+  leftContent: {
+    width: 60,
+    height: 60,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+  },
+  middleContent: {
+    flex: 1,
+    gap: 4,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  subtitle: {
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  statusRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
-  moodEmoji: {
-    fontSize: 20,
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  rightContent: {
+    alignItems: 'flex-end',
+    gap: 8,
   },
   date: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   deleteButton: {
     padding: 4,
-  },
-  deleteText: {
-    fontSize: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  scheduledDate: {
-    fontSize: 12,
   },
 });

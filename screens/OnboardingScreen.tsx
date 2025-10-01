@@ -211,32 +211,32 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    FlatList,
+    Image,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Animated, {
-  Easing,
-  Extrapolate,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming
+    Easing,
+    Extrapolate,
+    interpolate,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withRepeat,
+    withSequence,
+    withSpring,
+    withTiming
 } from 'react-native-reanimated';
 import { Button } from '../components/Button';
-import { useAuthStore } from '../store/authStore';
+import { useAppStore } from '../store/useAppStore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -268,7 +268,7 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 export const OnboardingScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { completeOnboarding } = useAuthStore();
+  const { setIsOnboardingCompleted } = useAppStore();
   const flatListRef = useRef<FlatList>(null);
   const scrollX = useSharedValue(0);
   const autoScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -322,13 +322,13 @@ export const OnboardingScreen: React.FC = () => {
       setCurrentIndex(nextIndex);
       startAutoScroll();
     } else {
-      completeOnboarding();
+      setIsOnboardingCompleted(true);
     }
   };
 
   const handleSkip = () => {
     stopAutoScroll();
-    completeOnboarding();
+    setIsOnboardingCompleted(true);
   };
 
   const scrollHandler = useAnimatedScrollHandler({
